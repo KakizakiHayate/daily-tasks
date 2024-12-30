@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - WATCHPACK_POLLING=true 
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_KEY=base64:QCg0e15B0EEGXJbGP6p6sbvnleRTHepkG/fSNAI2O0M=
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=daily-tasks-db
+      - DB_USERNAME=admin
+      - DB_PASSWORD=dt-1229
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: dt-1229
+      MYSQL_DATABASE: daily-tasks-db
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: dt-1229
+    volumes:
+      - db_data:/var/lib/mysql
+
+  phpmyadmin:
+    build:
+      context: ./phpmyadmin
+      dockerfile: Dockerfile
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: dt-1229
+    depends_on:
+      - db
+    expose:
+      - "9000"
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - ../backend:/var/www/backend
+      - ../frontend:/var/www/frontend
+    depends_on:
+      - backend
+      - phpmyadmin
+      - frontend 
+
+volumes:
+  db_data:

@@ -1,0 +1,6 @@
+FROM phpmyadmin/phpmyadmin:5.2.1-fpm
+
+ENV PMA_HOST=db
+ENV MYSQL_ROOT_PASSWORD=dt-1229
+
+EXPOSE 9000
