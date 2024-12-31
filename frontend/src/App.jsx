@@ -1,11 +1,28 @@
 import React, { useState } from 'react';
-import { PlusCircle, Layout, Award } from 'lucide-react';
+import { PlusCircle, Layout, Award, LogOut } from 'lucide-react';
 import { TaskCard } from './components/TaskCard';
 import { ProgressCircle } from './components/ProgressCircle';
 import { AchievementCard } from './components/AchievementCard';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
-function App() {
+function RequireAuth({ children }) {
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+}
+
+function Dashboard() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [tasks, setTasks] = useState([
     {
       id: '1',
@@ -56,7 +73,6 @@ function App() {
   };
 
   const handlePostpone = (id) => {
-    // 実際のアプリでは、タスクを明日のリストに移動します
     console.log('タスクを延期:', id);
   };
 
@@ -83,6 +99,11 @@ function App() {
 
     setTasks([...tasks, newTask]);
     setNewTaskTitle('');
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   return (
@@ -115,6 +136,13 @@ function App() {
               >
                 <Award size={20} />
                 <span>実績</span>
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors text-gray-600 hover:bg-red-100 hover:text-red-700"
+              >
+                <LogOut size={20} />
+                <span>ログアウト</span>
               </button>
             </div>
           </div>
@@ -200,6 +228,28 @@ function App() {
         </div>
       </div>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/dashboard"
+            element={
+              <RequireAuth>
+                <Dashboard />
+              </RequireAuth>
+            }
+          />
+          <Route path="/" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 
