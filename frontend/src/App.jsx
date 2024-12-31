@@ -4,20 +4,22 @@ import { TaskCard } from './components/TaskCard';
 import { ProgressCircle } from './components/ProgressCircle';
 import { AchievementCard } from './components/AchievementCard';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 function RequireAuth({ children }) {
   const { isAuthenticated } = useAuth();
-  const location = useLocation();
+  const navigate = useNavigate();
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
 
-  return children;
+  return isAuthenticated ? children : null;
 }
 
 function Dashboard() {
