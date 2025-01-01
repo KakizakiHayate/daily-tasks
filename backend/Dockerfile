@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     net-tools \
     procps \
+    && docker-php-ext-install pdo_mysql \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
