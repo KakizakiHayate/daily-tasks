@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../components/AuthLayout';
 import { useAuth } from '../contexts/AuthContext';
+import axios from 'axios';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 export function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -10,23 +13,52 @@ export function RegisterPage() {
     password: '',
     confirmPassword: '',
   });
+  const [error, setError] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
     if (formData.password !== formData.confirmPassword) {
-      alert('パスワードが一致しません');
+      setError('パスワードが一致しません');
       return;
     }
-    // TODO: 実際の新規登録処理をここに実装
-    login();
-    navigate('/dashboard');
+
+    try {
+      const response = await axios.post(`${API_URL}/api/register`, {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        password_confirmation: formData.confirmPassword
+      });
+
+      if (response.data.access_token) {
+        // トークンを保存
+        localStorage.setItem('user', JSON.stringify(response.data));
+        // ログイン状態を更新
+        login(response.data);
+        // ダッシュボードへ遷移
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      setError(
+        error.response?.data?.message || 
+        'アカウントの作成に失敗しました。もう一度お試しください。'
+      );
+    }
   };
 
   return (
     <AuthLayout title="アカウントを作成">
       <form className="space-y-6" onSubmit={handleSubmit}>
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
+            <p className="text-red-700">{error}</p>
+          </div>
+        )}
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700">
             お名前
