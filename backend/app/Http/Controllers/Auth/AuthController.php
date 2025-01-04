@@ -106,9 +106,9 @@ class AuthController extends Controller
             $user = Auth::user();
             
             // 論理削除を実行
-            $user->update([
+            User::where('id', $user->id)->update([
                 'is_deleted' => true,
-                'deleted_at' => Carbon::now(),
+                'deleted_at' => Carbon::now()
             ]);
 
             // ログアウト処理

@@ -1,13 +1,7 @@
 <?php
 
 return [
-    'paths' => [
-        'api/*',
-        'register',
-        'login',
-        'logout',
-        'sanctum/csrf-cookie',
-    ],
+    'paths' => ['*'],
     'allowed_methods' => ['*'],
     'allowed_origins' => ['http://localhost:3000'],
     'allowed_origins_patterns' => [],
