@@ -24,4 +24,4 @@ RUN composer install
 
 RUN chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache
 
-CMD ["php", "-S", "0.0.0.0:8000", "-t", "public"]
+CMD ["php", "-S", "0.0.0.0:8001", "-t", "public"]
