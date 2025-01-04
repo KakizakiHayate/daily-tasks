@@ -1,28 +1,42 @@
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
+
+// デフォルトの設定
 axios.defaults.withCredentials = true;
+axios.defaults.withXSRFToken = true;
+axios.defaults.headers.common['Accept'] = 'application/json';
 
 const authService = {
     register: async (userData) => {
-        await axios.get(`${API_URL}/sanctum/csrf-cookie`);
-        const response = await axios.post(`${API_URL}/api/register`, userData);
-        if (response.data.user) {
-            localStorage.setItem('user', JSON.stringify(response.data.user));
+        try {
+            await axios.get(`${API_URL}/sanctum/csrf-cookie`);
+            const response = await axios.post(`${API_URL}/api/register`, userData);
+            if (response.data.user) {
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+            }
+            return response.data;
+        } catch (error) {
+            console.error('Register error:', error);
+            throw error;
         }
-        return response.data;
     },
 
     login: async (email, password) => {
-        await axios.get(`${API_URL}/sanctum/csrf-cookie`);
-        const response = await axios.post(`${API_URL}/api/login`, {
-            email,
-            password
-        });
-        if (response.data.user) {
-            localStorage.setItem('user', JSON.stringify(response.data.user));
+        try {
+            await axios.get(`${API_URL}/sanctum/csrf-cookie`);
+            const response = await axios.post(`${API_URL}/api/login`, {
+                email,
+                password
+            });
+            if (response.data.user) {
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+            }
+            return response.data;
+        } catch (error) {
+            console.error('Login error:', error);
+            throw error;
         }
-        return response.data;
     },
 
     logout: async () => {
@@ -32,11 +46,16 @@ const authService = {
         } catch (error) {
             console.error('Logout error:', error);
             localStorage.removeItem('user');
+            throw error;
         }
     },
 
     getCurrentUser: () => {
-        return JSON.parse(localStorage.getItem('user'));
+        try {
+            return JSON.parse(localStorage.getItem('user'));
+        } catch (error) {
+            return null;
+        }
     },
 
     // Axiosのインターセプターを設定
@@ -44,7 +63,7 @@ const authService = {
         axios.interceptors.response.use(
             response => response,
             error => {
-                if (error.response?.status === 401) {
+                if (error.response?.status === 401 || error.response?.status === 419) {
                     localStorage.removeItem('user');
                     window.location.href = '/login';
                 }
