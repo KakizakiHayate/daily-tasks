@@ -70,11 +70,13 @@ function Dashboard() {
   const handleAddTask = async () => {
     if (!newTaskTitle.trim()) return;
 
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD形式で今日の日付を取得
+
     const newTask = {
       title: newTaskTitle,
       description: '',
       priority: 'medium',
-      due_date: null,
+      due_date: today,
     };
 
     await addTask(newTask);

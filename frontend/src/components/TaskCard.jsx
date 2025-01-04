@@ -21,7 +21,6 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
     title: task.title,
     description: task.description || '',
     priority: task.priority,
-    due_date: task.due_date || '',
   });
 
   const handleComplete = () => {
@@ -35,9 +34,21 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
     }
   };
 
+  const handleDelete = () => {
+    if (task.completed) {
+      alert('完了済みのタスクは削除できません。');
+      return;
+    }
+
+    if (window.confirm('このタスクを削除してもよろしいですか？')) {
+      onDelete(task.id);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onEdit(task.id, editData);
+    const today = new Date().toISOString().split('T')[0];
+    onEdit(task.id, { ...editData, due_date: today });
     setIsEditing(false);
   };
 
@@ -75,15 +86,6 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
               <option value="medium">中</option>
               <option value="low">低</option>
             </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">期限日</label>
-            <input
-              type="date"
-              value={editData.due_date}
-              onChange={(e) => setEditData({ ...editData, due_date: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            />
           </div>
           <div className="flex justify-end space-x-2">
             <button
@@ -146,19 +148,27 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
         <div className="flex space-x-2">
           <button
             onClick={() => setIsEditing(true)}
-            className="text-gray-400 hover:text-indigo-500 transition-colors"
+            className={`text-gray-400 hover:text-indigo-500 transition-colors ${
+              task.completed ? 'cursor-not-allowed opacity-50' : ''
+            }`}
+            disabled={task.completed}
           >
             <Pencil size={20} />
           </button>
           <button
             onClick={() => onPostpone(task.id)}
-            className="text-gray-400 hover:text-gray-500 transition-colors"
+            className={`text-gray-400 hover:text-gray-500 transition-colors ${
+              task.completed ? 'cursor-not-allowed opacity-50' : ''
+            }`}
+            disabled={task.completed}
           >
             <Clock size={20} />
           </button>
           <button
-            onClick={() => onDelete(task.id)}
-            className="text-gray-400 hover:text-red-500 transition-colors"
+            onClick={handleDelete}
+            className={`text-gray-400 hover:text-red-500 transition-colors ${
+              task.completed ? 'cursor-not-allowed opacity-50' : ''
+            }`}
           >
             <Trash2 size={20} />
           </button>
