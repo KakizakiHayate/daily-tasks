@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../components/AuthLayout';
 import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
+import authService from '../services/authService';
 
 export function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -27,27 +25,27 @@ export function RegisterPage() {
     }
 
     try {
-      const response = await axios.post(`${API_URL}/api/register`, {
+      const response = await authService.register({
         name: formData.name,
         email: formData.email,
         password: formData.password,
         password_confirmation: formData.confirmPassword
       });
 
-      if (response.data.access_token) {
-        // トークンを保存
-        localStorage.setItem('user', JSON.stringify(response.data));
-        // ログイン状態を更新
-        login(response.data);
-        // ダッシュボードへ遷移
-        navigate('/dashboard');
-      }
+      login(); // 認証状態を更新
+      navigate('/dashboard'); // ダッシュボードへ遷移
     } catch (error) {
       console.error('Registration error:', error);
-      setError(
-        error.response?.data?.message || 
-        'アカウントの作成に失敗しました。もう一度お試しください。'
-      );
+      if (error.response?.data?.errors) {
+        // バリデーションエラーの処理
+        const errorMessages = Object.values(error.response.data.errors).flat();
+        setError(errorMessages.join('\n'));
+      } else {
+        setError(
+          error.response?.data?.message || 
+          'アカウントの作成に失敗しました。もう一度お試しください。'
+        );
+      }
     }
   };
 

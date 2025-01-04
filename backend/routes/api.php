@@ -17,9 +17,6 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    // // ユーザー情報の更新
-    // Route::put('/user', [UserController::class, 'update']);
-
-    // // ユーザー情報の削除
-    // Route::delete('/user', [UserController::class, 'delete']);
+    // アカウント削除
+    Route::delete('/account', [AuthController::class, 'deleteAccount']);
 });

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Exception;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -94,6 +95,33 @@ class AuthController extends Controller
         } catch (Exception $e) {
             return response()->json([
                 'message' => 'ログアウトに失敗しました',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function deleteAccount(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            
+            // 論理削除を実行
+            $user->update([
+                'is_deleted' => true,
+                'deleted_at' => Carbon::now(),
+            ]);
+
+            // ログアウト処理
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return response()->json([
+                'message' => 'アカウントが削除されました',
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'アカウントの削除に失敗しました',
                 'error' => $e->getMessage(),
             ], 500);
         }

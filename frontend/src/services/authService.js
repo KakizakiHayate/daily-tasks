@@ -58,6 +58,16 @@ const authService = {
         }
     },
 
+    deleteAccount: async () => {
+        try {
+            await axios.delete(`${API_URL}/api/account`);
+            localStorage.removeItem('user');
+        } catch (error) {
+            console.error('Account deletion error:', error);
+            throw error;
+        }
+    },
+
     // Axiosのインターセプターを設定
     setupAxiosInterceptors: () => {
         axios.interceptors.response.use(
