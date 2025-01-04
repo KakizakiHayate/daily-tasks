@@ -4,22 +4,59 @@ import { AuthLayout } from '../components/AuthLayout';
 import { useAuth } from '../contexts/AuthContext';
 
 export function LoginPage() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
-  const navigate = useNavigate();
-  const { login } = useAuth();
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  // フォーム送信時の処理
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: 実際のログイン処理をここに実装
-    login();
-    navigate('/dashboard');
+    setError(''); // エラーメッセージをリセット
+
+    try {
+      // APIにPOSTリクエスト
+      const response = await fetch('http://localhost:8001/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('ログインに失敗しました');
+      }
+
+      const data = await response.json();
+      login(data.token); // トークンを保存
+      navigate('/dashboard'); // ダッシュボードに遷移
+    } catch (err) {
+      setError('メールアドレスまたはパスワードが正しくありません');
+      console.error('Login error:', err);
+    }
+  };
+
+  // フォーム入力の状態を管理
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   return (
     <AuthLayout title="アカウントにサインイン">
+      {error && (
+        <div className="text-red-600 bg-red-100 p-2 rounded mb-4">
+          {error}
+        </div>
+      )}
+
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -33,7 +70,7 @@ export function LoginPage() {
               autoComplete="email"
               required
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={handleChange}
               className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
@@ -51,7 +88,7 @@ export function LoginPage() {
               autoComplete="current-password"
               required
               value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              onChange={handleChange}
               className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
@@ -76,4 +113,4 @@ export function LoginPage() {
       </form>
     </AuthLayout>
   );
-} 
+}
