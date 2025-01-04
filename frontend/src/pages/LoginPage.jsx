@@ -102,3 +102,5 @@ export function LoginPage() {
     </AuthLayout>
   );
 }
+
+export default LoginPage;
