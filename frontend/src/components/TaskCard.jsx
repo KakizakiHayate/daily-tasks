@@ -24,6 +24,17 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
     due_date: task.due_date || '',
   });
 
+  const handleComplete = () => {
+    if (task.completed) {
+      alert('このタスクは既に完了しています。');
+      return;
+    }
+    
+    if (window.confirm('このタスクを完了としてマークしますか？')) {
+      onComplete(task.id);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onEdit(task.id, editData);
@@ -99,7 +110,7 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-4">
           <button
-            onClick={() => onComplete(task.id)}
+            onClick={handleComplete}
             className={`mt-1 rounded-full p-1 transition-colors ${
               task.completed
                 ? 'text-green-500 hover:text-green-600'

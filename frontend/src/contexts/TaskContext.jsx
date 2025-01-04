@@ -67,7 +67,15 @@ export const TaskProvider = ({ children }) => {
         if (!task) return;
 
         try {
-            await editTask(taskId, { ...task, is_completed: isCompleted });
+            const updatedTask = await editTask(taskId, {
+                ...task,
+                is_completed: isCompleted,
+                completed_at: isCompleted ? new Date().toISOString() : null
+            });
+
+            // タスクが完了状態になった場合のみ、task_logsにデータを保存
+            // バックエンドのTaskControllerで処理されるので、ここでは特別な処理は不要
+            return updatedTask;
         } catch (err) {
             setError(err.message);
             throw err;

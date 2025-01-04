@@ -40,9 +40,17 @@ function Dashboard() {
     : 0;
 
   const handleComplete = async (id) => {
-    const task = tasks.find(t => t.id === id);
-    if (task) {
-      await toggleTaskCompletion(id, !task.is_completed);
+    try {
+      const task = tasks.find(t => t.id === id);
+      if (task && !task.is_completed) {
+        await toggleTaskCompletion(id, true);
+        // タスク完了時のメッセージ
+        const message = `タスク「${task.title}」を完了しました！`;
+        alert(message);
+      }
+    } catch (error) {
+      console.error('タスク完了エラー:', error);
+      alert('タスクの完了処理中にエラーが発生しました。');
     }
   };
 
