@@ -103,9 +103,30 @@ function Dashboard() {
     setNewTaskTitle('');
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+
+  const handleLogout = async () => {
+    try {
+      // API にログアウトリクエストを送信
+      const response = await fetch('http://localhost:8001/api/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      });
+  
+      // レスポンスが成功した場合
+      if (response.ok) {
+        logout(); // AuthContext の logout 関数を呼び出す
+        navigate('/login'); // ログインページにリダイレクト
+      } else {
+        // エラーの場合
+        const errorData = await response.json();
+        console.error('ログアウトに失敗しました:', errorData.message);
+      }
+    } catch (error) {
+      console.error('ログアウトエラー:', error);
+    }
   };
 
   return (

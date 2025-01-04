@@ -1,37 +1,38 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
+axios.defaults.withCredentials = true;
 
 const authService = {
     register: async (userData) => {
-        const response = await axios.post(`${API_URL}/register`, userData);
-        if (response.data.access_token) {
-            localStorage.setItem('user', JSON.stringify(response.data));
+        await axios.get(`${API_URL}/sanctum/csrf-cookie`);
+        const response = await axios.post(`${API_URL}/api/register`, userData);
+        if (response.data.user) {
+            localStorage.setItem('user', JSON.stringify(response.data.user));
         }
         return response.data;
     },
 
     login: async (email, password) => {
-        const response = await axios.post(`${API_URL}/login`, {
+        await axios.get(`${API_URL}/sanctum/csrf-cookie`);
+        const response = await axios.post(`${API_URL}/api/login`, {
             email,
             password
         });
-        if (response.data.access_token) {
-            localStorage.setItem('user', JSON.stringify(response.data));
+        if (response.data.user) {
+            localStorage.setItem('user', JSON.stringify(response.data.user));
         }
         return response.data;
     },
 
     logout: async () => {
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (user?.access_token) {
-            await axios.post(`${API_URL}/logout`, {}, {
-                headers: {
-                    'Authorization': `Bearer ${user.access_token}`
-                }
-            });
+        try {
+            await axios.post(`${API_URL}/api/logout`);
+            localStorage.removeItem('user');
+        } catch (error) {
+            console.error('Logout error:', error);
+            localStorage.removeItem('user');
         }
-        localStorage.removeItem('user');
     },
 
     getCurrentUser: () => {
@@ -40,15 +41,13 @@ const authService = {
 
     // Axiosのインターセプターを設定
     setupAxiosInterceptors: () => {
-        axios.interceptors.request.use(
-            (config) => {
-                const user = JSON.parse(localStorage.getItem('user'));
-                if (user?.access_token) {
-                    config.headers.Authorization = `Bearer ${user.access_token}`;
+        axios.interceptors.response.use(
+            response => response,
+            error => {
+                if (error.response?.status === 401) {
+                    localStorage.removeItem('user');
+                    window.location.href = '/login';
                 }
-                return config;
-            },
-            (error) => {
                 return Promise.reject(error);
             }
         );

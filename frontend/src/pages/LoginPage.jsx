@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../components/AuthLayout';
 import { useAuth } from '../contexts/AuthContext';
+import authService from '../services/authService';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -19,21 +20,8 @@ export function LoginPage() {
     setError(''); // エラーメッセージをリセット
 
     try {
-      // APIにPOSTリクエスト
-      const response = await fetch('http://localhost:8001/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error('ログインに失敗しました');
-      }
-
-      const data = await response.json();
-      login(data.token); // トークンを保存
+      const response = await authService.login(formData.email, formData.password);
+      login(); // 認証状態を更新
       navigate('/dashboard'); // ダッシュボードに遷移
     } catch (err) {
       setError('メールアドレスまたはパスワードが正しくありません');

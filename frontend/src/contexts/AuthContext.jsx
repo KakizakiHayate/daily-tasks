@@ -1,27 +1,41 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import authService from '../services/authService';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    const storedAuth = localStorage.getItem('isAuthenticated');
-    return storedAuth === 'true';
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    localStorage.setItem('isAuthenticated', isAuthenticated);
-  }, [isAuthenticated]);
+    // 初期化時に認証状態を確認
+    const currentUser = authService.getCurrentUser();
+    if (currentUser) {
+      setIsAuthenticated(true);
+      setUser(currentUser);
+    }
+    // Axiosインターセプターを設定
+    authService.setupAxiosInterceptors();
+  }, []);
 
   const login = () => {
+    const currentUser = authService.getCurrentUser();
     setIsAuthenticated(true);
+    setUser(currentUser);
   };
 
-  const logout = () => {
-    setIsAuthenticated(false);
+  const logout = async () => {
+    try {
+      await authService.logout();
+      setIsAuthenticated(false);
+      setUser(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

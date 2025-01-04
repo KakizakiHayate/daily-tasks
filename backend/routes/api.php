@@ -7,8 +7,8 @@ use App\Http\Controllers\UserController;
 
 // 認証系エンドポイント
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 
 // 認証が必要なエンドポイント
 Route::middleware('auth:sanctum')->group(function () {
