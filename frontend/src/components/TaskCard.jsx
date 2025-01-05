@@ -26,6 +26,7 @@ const priorityLabels = {
 export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
   const [isEditing, setIsEditing] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [toastConfig, setToastConfig] = useState({ message: '', type: 'success' });
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editData, setEditData] = useState({
@@ -45,6 +46,11 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
     return () => clearTimeout(timeoutId);
   }, [showToast]);
 
+  const showToastMessage = (message, type = 'success') => {
+    setToastConfig({ message, type });
+    setShowToast(true);
+  };
+
   const handleCompleteClick = () => {
     if (task.is_completed || isAnimating) {
       return;
@@ -56,20 +62,31 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
     setShowConfirmModal(false);
     await startFlyAnimation();
     onComplete(task.id);
-    setShowToast(true);
+    showToastMessage(`タスク「${task.title}」を完了しました！`, 'success');
   };
 
   const handleDeleteClick = () => {
     if (task.is_completed) {
-      setShowToast(true);
+      showToastMessage('完了済みのタスクは削除できません。', 'error');
       return;
     }
     setShowDeleteModal(true);
   };
 
-  const handleConfirmDelete = () => {
-    setShowDeleteModal(false);
-    onDelete(task.id);
+  const handleConfirmDelete = async () => {
+    try {
+      const taskTitle = task.title;
+      setShowDeleteModal(false);
+      await onDelete(task.id);
+      console.log('taskTitle:', taskTitle);
+      console.log('削除成功');
+      setToastConfig({ message: `タスク「${taskTitle}」を削除しました！`, type: 'error' });
+      setShowToast(true);
+    } catch (error) {
+      console.error('削除中にエラーが発生しました:', error);
+      setToastConfig({ message: 'タスクの削除中にエラーが発生しました。', type: 'error' });
+      setShowToast(true);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -231,7 +248,8 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
         {task.is_completed && <SparkleEffect />}
       </motion.div>
       <Toast
-        message={`タスク「${task.title}」を完了しました！`}
+        message={toastConfig.message}
+        type={toastConfig.type}
         isVisible={showToast}
         onClose={() => setShowToast(false)}
       />
