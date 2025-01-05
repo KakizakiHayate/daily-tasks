@@ -176,7 +176,9 @@ function Dashboard() {
                 <Layout size={20} />
                 <span>タスク</span>
               </button>
-              <button
+              
+              {/* 以下は将来的に実装予定 */}
+              {/* <button
                 onClick={() => setActiveTab('achievements')}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
                   activeTab === 'achievements'
@@ -186,7 +188,7 @@ function Dashboard() {
               >
                 <Award size={20} />
                 <span>実績</span>
-              </button>
+              </button> */}
               <button
                 onClick={handleLogout}
                 className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors text-gray-600 hover:bg-red-100 hover:text-red-700"
