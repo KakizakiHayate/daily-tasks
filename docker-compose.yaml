@@ -31,8 +31,12 @@ services:
       - DB_DATABASE=daily-tasks-db
       - DB_USERNAME=admin
       - DB_PASSWORD=dt-1229
+      - PHP_IDE_CONFIG=serverName=Docker
+      - XDEBUG_CONFIG=client_host=host.docker.internal
     depends_on:
       - db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   db:
     image: mysql:8.0

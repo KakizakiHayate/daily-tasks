@@ -24,4 +24,11 @@ RUN composer install
 
 RUN chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Xdebugのインストール
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug
+
+# Xdebugの設定
+COPY docker/php/xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+
 CMD ["php", "-S", "0.0.0.0:8001", "-t", "public"]
