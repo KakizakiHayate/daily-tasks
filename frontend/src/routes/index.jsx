@@ -5,7 +5,11 @@ import Dashboard from '../pages/Dashboard';
 import { useAuth } from '../contexts/AuthContext';
 
 function RequireAuth({ children }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -14,11 +18,41 @@ function RequireAuth({ children }) {
   return children;
 }
 
+function RequireGuest({ children }) {
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return children;
+}
+
 function AppRoutes() {
+  const { isAuthenticated } = useAuth();
+
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route
+        path="/login"
+        element={
+          <RequireGuest>
+            <LoginPage />
+          </RequireGuest>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <RequireGuest>
+            <RegisterPage />
+          </RequireGuest>
+        }
+      />
       <Route
         path="/dashboard"
         element={
@@ -27,7 +61,16 @@ function AppRoutes() {
           </RequireAuth>
         }
       />
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route
+        path="/"
+        element={
+          isAuthenticated ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
     </Routes>
   );
 }
