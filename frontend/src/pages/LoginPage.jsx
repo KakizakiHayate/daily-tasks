@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../components/AuthLayout';
 import { useAuth } from '../contexts/AuthContext';
-import authService from '../services/authService';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, error: authError } = useAuth();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -20,11 +19,12 @@ export function LoginPage() {
     setError(''); // エラーメッセージをリセット
 
     try {
-      const response = await authService.login(formData.email, formData.password);
-      login(); // 認証状態を更新
-      navigate('/dashboard'); // ダッシュボードに遷移
+      const success = await login(formData.email, formData.password);
+      if (!success) {
+        setError('ログインに失敗しました。');
+      }
     } catch (err) {
-      setError('メールアドレスまたはパスワードが正しくありません');
+      setError(err.message || 'ログインに失敗しました。');
       console.error('Login error:', err);
     }
   };
@@ -39,9 +39,9 @@ export function LoginPage() {
 
   return (
     <AuthLayout title="アカウントにサインイン">
-      {error && (
+      {(error || authError) && (
         <div className="text-red-600 bg-red-100 p-2 rounded mb-4">
-          {error}
+          {error || authError}
         </div>
       )}
 

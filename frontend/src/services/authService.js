@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
+const SANCTUM_URL = process.env.REACT_APP_SANCTUM_URL || 'http://localhost:8001';
 
 // デフォルトの設定
 axios.defaults.withCredentials = true;
@@ -9,13 +10,21 @@ axios.defaults.headers.common['Accept'] = 'application/json';
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 const authService = {
+    getCsrfToken: async () => {
+        try {
+            await axios.get(`${SANCTUM_URL}/sanctum/csrf-cookie`, {
+                withCredentials: true
+            });
+        } catch (error) {
+            console.error('CSRF token error:', error);
+            throw error;
+        }
+    },
+
     register: async (userData) => {
         try {
-            await axios.get(`${API_URL}/sanctum/csrf-cookie`);
+            await authService.getCsrfToken();
             const response = await axios.post(`${API_URL}/api/register`, userData);
-            if (response.data.user) {
-                localStorage.setItem('user', JSON.stringify(response.data.user));
-            }
             return response.data;
         } catch (error) {
             console.error('Register error:', error);
@@ -25,16 +34,16 @@ const authService = {
 
     login: async (email, password) => {
         try {
-            await axios.get(`${API_URL}/sanctum/csrf-cookie`);
+            await authService.getCsrfToken();
             const response = await axios.post(`${API_URL}/api/login`, {
                 email,
                 password
             });
-            if (response.data.user) {
-                localStorage.setItem('user', JSON.stringify(response.data.user));
-            }
             return response.data;
         } catch (error) {
+            if (error.response?.status === 422) {
+                throw new Error('メールアドレスまたはパスワードが正しくありません。');
+            }
             console.error('Login error:', error);
             throw error;
         }
@@ -43,18 +52,24 @@ const authService = {
     logout: async () => {
         try {
             await axios.post(`${API_URL}/api/logout`);
-            localStorage.removeItem('user');
         } catch (error) {
             console.error('Logout error:', error);
-            localStorage.removeItem('user');
             throw error;
         }
     },
 
-    getCurrentUser: () => {
+    // セッション状態を確認するメソッド
+    checkAuth: async () => {
         try {
-            return JSON.parse(localStorage.getItem('user'));
+            const response = await axios.get(`${API_URL}/api/user`, {
+                // 認証チェック時は401エラーを通常のレスポンスとして扱う
+                validateStatus: function (status) {
+                    return status >= 200 && status < 300 || status === 401;
+                }
+            });
+            return response.data;
         } catch (error) {
+            console.error('Auth check error:', error);
             return null;
         }
     },
@@ -62,7 +77,6 @@ const authService = {
     deleteAccount: async () => {
         try {
             await axios.delete(`${API_URL}/api/account`);
-            localStorage.removeItem('user');
         } catch (error) {
             console.error('Account deletion error:', error);
             throw error;
@@ -74,8 +88,9 @@ const authService = {
         axios.interceptors.response.use(
             response => response,
             error => {
-                if (error.response?.status === 401 || error.response?.status === 419) {
-                    localStorage.removeItem('user');
+                // 認証チェック以外の401/419エラーの場合のみリダイレクト
+                if ((error.response?.status === 401 || error.response?.status === 419) && 
+                    !error.config.url.endsWith('/api/user')) {
                     window.location.href = '/login';
                 }
                 return Promise.reject(error);

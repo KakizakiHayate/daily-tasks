@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\DashboardController;
 
 // 認証系エンドポイント
 Route::post('/register', [AuthController::class, 'register']);
@@ -17,6 +18,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+
+    // ダッシュボード
+    Route::get('/dashboard', [DashboardController::class, 'index']);
 
     // アカウント削除
     Route::delete('/account', [AuthController::class, 'deleteAccount']);

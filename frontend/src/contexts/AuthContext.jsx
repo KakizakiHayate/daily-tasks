@@ -1,38 +1,65 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import authService from '../services/authService';
-import axios from 'axios';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // 初期化時に認証状態を確認
-    const currentUser = authService.getCurrentUser();
-    if (currentUser) {
-      setIsAuthenticated(true);
-      setUser(currentUser);
-    }
-    // Axiosインターセプターを設定
-    authService.setupAxiosInterceptors();
-  }, []);
+    const validateAuth = async () => {
+      try {
+        // Axiosインターセプターを設定
+        authService.setupAxiosInterceptors();
+        
+        // ログインページでは認証チェックをスキップ
+        if (location.pathname === '/login') {
+          setIsLoading(false);
+          return;
+        }
 
-  // CSRFトークンを取得する関数
-  const refreshCsrfToken = async () => {
+        // セッション状態を確認
+        const userData = await authService.checkAuth();
+        if (userData) {
+          setIsAuthenticated(true);
+          setUser(userData);
+        } else {
+          setIsAuthenticated(false);
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('認証状態の確認に失敗しました:', error);
+        setIsAuthenticated(false);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    validateAuth();
+  }, [location.pathname]);
+
+  const login = async (email, password) => {
     try {
-      await axios.get('http://backend:8000/sanctum/csrf-cookie', {
-        withCredentials: true
-      });
+      setError(null);
+      const response = await authService.login(email, password);
+      if (response.user) {
+        setIsAuthenticated(true);
+        setUser(response.user);
+        navigate('/dashboard');
+        return true;
+      }
+      return false;
     } catch (error) {
-      console.error('CSRFトークンの更新に失敗しました:', error);
+      setError(error.message);
+      return false;
     }
-  };
-
-  const login = async () => {
-    await refreshCsrfToken(); // ログイン時にCSRFトークンを更新
-    setIsAuthenticated(true);
   };
 
   const logout = async () => {
@@ -40,13 +67,24 @@ export function AuthProvider({ children }) {
       await authService.logout();
       setIsAuthenticated(false);
       setUser(null);
+      navigate('/login');
     } catch (error) {
       console.error('Logout error:', error);
     }
   };
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider value={{ 
+      isAuthenticated, 
+      user, 
+      login, 
+      logout,
+      error 
+    }}>
       {children}
     </AuthContext.Provider>
   );
