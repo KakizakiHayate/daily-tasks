@@ -1,11 +1,13 @@
 import { CheckCircle, Trash2, Clock, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FlyAwayCard } from './FlyAwayCard';
 import { WindTrail } from './WindTrail';
 import { SparkleEffect } from './SparkleEffect';
+import { Toast } from './Toast';
+import { ConfirmModal } from './ConfirmModal';
 import { useTaskAnimation } from '../hooks/useTaskAnimation';
 
 const priorityColors = {
@@ -22,6 +24,8 @@ const priorityLabels = {
 
 export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [editData, setEditData] = useState({
     title: task.title,
     description: task.description || '',
@@ -29,15 +33,28 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
   });
   const { isAnimating, startFlyAnimation } = useTaskAnimation();
 
-  const handleComplete = async () => {
+  useEffect(() => {
+    let timeoutId;
+    if (showToast) {
+      timeoutId = setTimeout(() => {
+        setShowToast(false);
+      }, 3000);
+    }
+    return () => clearTimeout(timeoutId);
+  }, [showToast]);
+
+  const handleCompleteClick = () => {
     if (task.is_completed || isAnimating) {
       return;
     }
-    
-    if (window.confirm('このタスクを完了としてマークしますか？\n※この操作は取り消せません。')) {
-      await startFlyAnimation();
-      onComplete(task.id);
-    }
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmComplete = async () => {
+    setShowConfirmModal(false);
+    await startFlyAnimation();
+    onComplete(task.id);
+    setShowToast(true);
   };
 
   const handleDelete = () => {
@@ -124,89 +141,103 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
   }
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className={`bg-white rounded-lg shadow p-4 ${task.is_completed ? 'opacity-75' : ''}`}
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex items-start space-x-4">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={handleComplete}
-            className={`mt-1 rounded-full p-1 transition-colors ${
-              task.is_completed
-                ? 'text-green-500 hover:text-green-600'
-                : 'text-gray-400 hover:text-gray-500'
-            }`}
-          >
-            <CheckCircle size={20} />
-          </motion.button>
-          <div>
-            <motion.h3
-              layout
-              className={`text-lg font-medium ${task.is_completed ? 'line-through text-gray-500' : 'text-gray-900'}`}
+    <>
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className={`bg-white rounded-lg shadow p-4 ${task.is_completed ? 'opacity-75' : ''}`}
+      >
+        <div className="flex items-start justify-between">
+          <div className="flex items-start space-x-4">
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={handleCompleteClick}
+              className={`mt-1 rounded-full p-1 transition-colors ${
+                task.is_completed
+                  ? 'text-green-500 hover:text-green-600'
+                  : 'text-gray-400 hover:text-gray-500'
+              }`}
             >
-              {task.title}
-            </motion.h3>
-            {task.description && (
-              <motion.p
+              <CheckCircle size={20} />
+            </motion.button>
+            <div>
+              <motion.h3
                 layout
-                className="mt-1 text-sm text-gray-600"
+                className={`text-lg font-medium ${task.is_completed ? 'line-through text-gray-500' : 'text-gray-900'}`}
               >
-                {task.description}
-              </motion.p>
-            )}
-            <motion.div layout className="mt-2 flex flex-wrap gap-2">
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColors[task.priority]}`}>
-                優先度: {priorityLabels[task.priority]}
-              </span>
-              {task.due_date && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  期限: {format(new Date(task.due_date), 'yyyy/MM/dd', { locale: ja })}
-                </span>
+                {task.title}
+              </motion.h3>
+              {task.description && (
+                <motion.p
+                  layout
+                  className="mt-1 text-sm text-gray-600"
+                >
+                  {task.description}
+                </motion.p>
               )}
-              {task.created_at && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                  作成: {format(new Date(task.created_at), 'yyyy/MM/dd HH:mm', { locale: ja })}
+              <motion.div layout className="mt-2 flex flex-wrap gap-2">
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColors[task.priority]}`}>
+                  優先度: {priorityLabels[task.priority]}
                 </span>
-              )}
-            </motion.div>
+                {task.due_date && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    期限: {format(new Date(task.due_date), 'yyyy/MM/dd', { locale: ja })}
+                  </span>
+                )}
+                {task.created_at && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    作成: {format(new Date(task.created_at), 'yyyy/MM/dd HH:mm', { locale: ja })}
+                  </span>
+                )}
+              </motion.div>
+            </div>
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setIsEditing(true)}
+              className={`text-gray-400 hover:text-indigo-500 transition-colors ${
+                task.is_completed ? 'cursor-not-allowed opacity-50' : ''
+              }`}
+              disabled={task.is_completed}
+            >
+              <Pencil size={20} />
+            </button>
+            <button
+              onClick={() => onPostpone(task.id)}
+              className={`text-gray-400 hover:text-gray-500 transition-colors ${
+                task.is_completed ? 'cursor-not-allowed opacity-50' : ''
+              }`}
+              disabled={task.is_completed}
+            >
+              <Clock size={20} />
+            </button>
+            <button
+              onClick={handleDelete}
+              className={`text-gray-400 hover:text-red-500 transition-colors ${
+                task.is_completed ? 'cursor-not-allowed opacity-50' : ''
+              }`}
+            >
+              <Trash2 size={20} />
+            </button>
           </div>
         </div>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => setIsEditing(true)}
-            className={`text-gray-400 hover:text-indigo-500 transition-colors ${
-              task.is_completed ? 'cursor-not-allowed opacity-50' : ''
-            }`}
-            disabled={task.is_completed}
-          >
-            <Pencil size={20} />
-          </button>
-          <button
-            onClick={() => onPostpone(task.id)}
-            className={`text-gray-400 hover:text-gray-500 transition-colors ${
-              task.is_completed ? 'cursor-not-allowed opacity-50' : ''
-            }`}
-            disabled={task.is_completed}
-          >
-            <Clock size={20} />
-          </button>
-          <button
-            onClick={handleDelete}
-            className={`text-gray-400 hover:text-red-500 transition-colors ${
-              task.is_completed ? 'cursor-not-allowed opacity-50' : ''
-            }`}
-          >
-            <Trash2 size={20} />
-          </button>
-        </div>
-      </div>
-      {task.is_completed && <SparkleEffect />}
-    </motion.div>
+        {task.is_completed && <SparkleEffect />}
+      </motion.div>
+      <Toast
+        message={`タスク「${task.title}」を完了しました！`}
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+      />
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmComplete}
+        title="タスクを完了しますか？"
+        message="このタスクを完了としてマークします。この操作は取り消せません。"
+      />
+    </>
   );
 }
