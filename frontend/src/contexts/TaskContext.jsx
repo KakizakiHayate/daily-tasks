@@ -17,6 +17,7 @@ export const TaskProvider = ({ children }) => {
             setLoading(true);
             setError(null);
             const response = await getTasks();
+            console.log('response:', response);
             if (response && Array.isArray(response)) {
                 setTasks(response);
             } else {

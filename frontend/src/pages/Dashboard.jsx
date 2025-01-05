@@ -53,22 +53,43 @@ function Dashboard() {
   // 今日のタスクのみをフィルタリング
   const todaysTasks = tasks.filter(task => isToday(task.due_date));
 
-  const completionRate = todaysTasks.length > 0
-    ? (todaysTasks.filter(task => task.is_completed).length / todaysTasks.length) * 100
-    : 0;
+  // 優先度の高いタスクのみをフィルタリング
+  const highPriorityTasks = todaysTasks.filter(task => {
+    console.log(`タスクID: ${task.id}, Priority: ${task.priority}, Is Completed: ${task.is_completed}`);
+    return task.priority === 'high';
+  });
+  
+  console.log('全タスク:', tasks);
+  console.log('今日のタスク:', todaysTasks);
+  console.log('優先度の高いタスク:', highPriorityTasks);
+  console.log('完了済みの優先度の高いタスク:', highPriorityTasks.filter(task => task.is_completed));
+
+  const completionRate = highPriorityTasks.length > 0
+  ? (highPriorityTasks.filter(task => {
+      console.log('task.is_completed:', task.is_completed);
+      console.log('task:', task);
+      return task.is_completed;
+    }).length / highPriorityTasks.length) * 100
+  : 0;
 
   const handleComplete = async (id) => {
     try {
       const task = tasks.find(t => t.id === id);
-      if (task && !task.is_completed) {
-        await toggleTaskCompletion(id, true);
-        // タスク完了時のメッセージ
+      if (task) {
+        // 完了状態のみを更新
+        await editTask(id, {
+          title: task.title,
+          description: task.description,
+          priority: task.priority,
+          due_date: task.due_date,  // 既存の期限日をそのまま使用
+          is_completed: true
+        });
         const message = `タスク「${task.title}」を完了しました！`;
         alert(message);
       }
     } catch (error) {
-      console.error('タスク完了エラー:', error);
-      alert('タスクの完了処理中にエラーが発生しました。');
+      console.error('タスク状態変更エラー:', error);
+      alert('タスクの状態変更中にエラーが発生しました。');
     }
   };
 
@@ -89,9 +110,8 @@ function Dashboard() {
     if (!newTaskTitle.trim()) return;
 
     const today = new Date();
-    const jstOffset = 9 * 60; // JSTは+9:00
-    const jstDate = new Date(today.getTime() + (jstOffset * 60 * 1000));
-    const formattedDate = jstDate.toISOString().split('T')[0];
+    // UTCで日付を生成し、それをYYYY-MM-DD形式に変換
+    const formattedDate = today.toISOString().split('T')[0];
 
     const newTask = {
       title: newTaskTitle,

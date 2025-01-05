@@ -24,18 +24,18 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
   });
 
   const handleComplete = () => {
-    if (task.completed) {
+    if (task.is_completed) {
       alert('このタスクは既に完了しています。');
       return;
     }
     
-    if (window.confirm('このタスクを完了としてマークしますか？')) {
+    if (window.confirm('このタスクを完了としてマークしますか？\n※この操作は取り消せません。')) {
       onComplete(task.id);
     }
   };
 
   const handleDelete = () => {
-    if (task.completed) {
+    if (task.is_completed) {
       alert('完了済みのタスクは削除できません。');
       return;
     }
@@ -48,8 +48,7 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     const today = new Date();
-    const jstDate = new Date(today.getTime() + (9 * 60 * 60 * 1000));
-    const formattedDate = jstDate.toISOString().split('T')[0];
+    const formattedDate = today.toISOString().split('T')[0];
     
     onEdit(task.id, { ...editData, due_date: formattedDate });
     setIsEditing(false);
@@ -111,13 +110,13 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
   }
 
   return (
-    <div className={`bg-white rounded-lg shadow p-4 ${task.completed ? 'opacity-75' : ''}`}>
+    <div className={`bg-white rounded-lg shadow p-4 ${task.is_completed ? 'opacity-75' : ''}`}>
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-4">
           <button
             onClick={handleComplete}
             className={`mt-1 rounded-full p-1 transition-colors ${
-              task.completed
+              task.is_completed
                 ? 'text-green-500 hover:text-green-600'
                 : 'text-gray-400 hover:text-gray-500'
             }`}
@@ -125,7 +124,7 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
             <CheckCircle size={20} />
           </button>
           <div>
-            <h3 className={`text-lg font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+            <h3 className={`text-lg font-medium ${task.is_completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
               {task.title}
             </h3>
             {task.description && (
@@ -152,25 +151,25 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
           <button
             onClick={() => setIsEditing(true)}
             className={`text-gray-400 hover:text-indigo-500 transition-colors ${
-              task.completed ? 'cursor-not-allowed opacity-50' : ''
+              task.is_completed ? 'cursor-not-allowed opacity-50' : ''
             }`}
-            disabled={task.completed}
+            disabled={task.is_completed}
           >
             <Pencil size={20} />
           </button>
           <button
             onClick={() => onPostpone(task.id)}
             className={`text-gray-400 hover:text-gray-500 transition-colors ${
-              task.completed ? 'cursor-not-allowed opacity-50' : ''
+              task.is_completed ? 'cursor-not-allowed opacity-50' : ''
             }`}
-            disabled={task.completed}
+            disabled={task.is_completed}
           >
             <Clock size={20} />
           </button>
           <button
             onClick={handleDelete}
             className={`text-gray-400 hover:text-red-500 transition-colors ${
-              task.completed ? 'cursor-not-allowed opacity-50' : ''
+              task.is_completed ? 'cursor-not-allowed opacity-50' : ''
             }`}
           >
             <Trash2 size={20} />
