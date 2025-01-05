@@ -2,6 +2,11 @@ import { CheckCircle, Trash2, Clock, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { FlyAwayCard } from './FlyAwayCard';
+import { WindTrail } from './WindTrail';
+import { SparkleEffect } from './SparkleEffect';
+import { useTaskAnimation } from '../hooks/useTaskAnimation';
 
 const priorityColors = {
   high: 'bg-red-100 text-red-800',
@@ -22,14 +27,15 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
     description: task.description || '',
     priority: task.priority,
   });
+  const { isAnimating, startFlyAnimation } = useTaskAnimation();
 
-  const handleComplete = () => {
-    if (task.is_completed) {
-      alert('このタスクは既に完了しています。');
+  const handleComplete = async () => {
+    if (task.is_completed || isAnimating) {
       return;
     }
     
     if (window.confirm('このタスクを完了としてマークしますか？\n※この操作は取り消せません。')) {
+      await startFlyAnimation();
       onComplete(task.id);
     }
   };
@@ -53,6 +59,14 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
     onEdit(task.id, { ...editData, due_date: formattedDate });
     setIsEditing(false);
   };
+
+  if (isAnimating) {
+    return (
+      <FlyAwayCard task={task}>
+        <WindTrail />
+      </FlyAwayCard>
+    );
+  }
 
   if (isEditing) {
     return (
@@ -110,10 +124,18 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
   }
 
   return (
-    <div className={`bg-white rounded-lg shadow p-4 ${task.is_completed ? 'opacity-75' : ''}`}>
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className={`bg-white rounded-lg shadow p-4 ${task.is_completed ? 'opacity-75' : ''}`}
+    >
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-4">
-          <button
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
             onClick={handleComplete}
             className={`mt-1 rounded-full p-1 transition-colors ${
               task.is_completed
@@ -122,15 +144,23 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
             }`}
           >
             <CheckCircle size={20} />
-          </button>
+          </motion.button>
           <div>
-            <h3 className={`text-lg font-medium ${task.is_completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+            <motion.h3
+              layout
+              className={`text-lg font-medium ${task.is_completed ? 'line-through text-gray-500' : 'text-gray-900'}`}
+            >
               {task.title}
-            </h3>
+            </motion.h3>
             {task.description && (
-              <p className="mt-1 text-sm text-gray-600">{task.description}</p>
+              <motion.p
+                layout
+                className="mt-1 text-sm text-gray-600"
+              >
+                {task.description}
+              </motion.p>
             )}
-            <div className="mt-2 flex flex-wrap gap-2">
+            <motion.div layout className="mt-2 flex flex-wrap gap-2">
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColors[task.priority]}`}>
                 優先度: {priorityLabels[task.priority]}
               </span>
@@ -144,7 +174,7 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
                   作成: {format(new Date(task.created_at), 'yyyy/MM/dd HH:mm', { locale: ja })}
                 </span>
               )}
-            </div>
+            </motion.div>
           </div>
         </div>
         <div className="flex space-x-2">
@@ -176,6 +206,7 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
           </button>
         </div>
       </div>
-    </div>
+      {task.is_completed && <SparkleEffect />}
+    </motion.div>
   );
 }
