@@ -8,6 +8,7 @@ import { WindTrail } from './WindTrail';
 import { SparkleEffect } from './SparkleEffect';
 import { Toast } from './Toast';
 import { ConfirmModal } from './ConfirmModal';
+import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { useTaskAnimation } from '../hooks/useTaskAnimation';
 
 const priorityColors = {
@@ -26,6 +27,7 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
   const [isEditing, setIsEditing] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editData, setEditData] = useState({
     title: task.title,
     description: task.description || '',
@@ -57,15 +59,17 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
     setShowToast(true);
   };
 
-  const handleDelete = () => {
+  const handleDeleteClick = () => {
     if (task.is_completed) {
-      alert('完了済みのタスクは削除できません。');
+      setShowToast(true);
       return;
     }
+    setShowDeleteModal(true);
+  };
 
-    if (window.confirm('このタスクを削除してもよろしいですか？')) {
-      onDelete(task.id);
-    }
+  const handleConfirmDelete = () => {
+    setShowDeleteModal(false);
+    onDelete(task.id);
   };
 
   const handleSubmit = (e) => {
@@ -215,7 +219,7 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
               <Clock size={20} />
             </button>
             <button
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
               className={`text-gray-400 hover:text-red-500 transition-colors ${
                 task.is_completed ? 'cursor-not-allowed opacity-50' : ''
               }`}
@@ -227,7 +231,7 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
         {task.is_completed && <SparkleEffect />}
       </motion.div>
       <Toast
-        message={`タスク「${task.title}」を完了しました！`}
+        message={task.is_completed ? '完了済みのタスクは削除できません。' : `タスク「${task.title}」を完了しました！`}
         isVisible={showToast}
         onClose={() => setShowToast(false)}
       />
@@ -237,6 +241,13 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
         onConfirm={handleConfirmComplete}
         title="タスクを完了しますか？"
         message="このタスクを完了としてマークします。この操作は取り消せません。"
+      />
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleConfirmDelete}
+        title="タスクを削除しますか？"
+        message="このタスクを削除します。この操作は取り消せません。"
       />
     </>
   );
