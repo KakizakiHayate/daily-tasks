@@ -231,7 +231,7 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
         {task.is_completed && <SparkleEffect />}
       </motion.div>
       <Toast
-        message={task.is_completed ? '完了済みのタスクは削除できません。' : `タスク「${task.title}」を完了しました！`}
+        message={`タスク「${task.title}」を完了しました！`}
         isVisible={showToast}
         onClose={() => setShowToast(false)}
       />

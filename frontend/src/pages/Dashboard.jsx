@@ -85,8 +85,6 @@ function Dashboard() {
           due_date: task.due_date,  // 既存の期限日をそのまま使用
           is_completed: true
         });
-        const message = `タスク「${task.title}」を完了しました！`;
-        alert(message);
       }
     } catch (error) {
       console.error('タスク状態変更エラー:', error);
