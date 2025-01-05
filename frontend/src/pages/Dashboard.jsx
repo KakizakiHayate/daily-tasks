@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle, Layout, Award, LogOut, UserX } from 'lucide-react';
+import { PlusCircle, Layout, Award, LogOut, UserX, Menu, X } from 'lucide-react';
 import { TaskCard } from '../components/TaskCard';
 import { ProgressCircle } from '../components/ProgressCircle';
 import { AchievementCard } from '../components/AchievementCard';
@@ -30,6 +30,7 @@ function Dashboard() {
 
   const [activeTab, setActiveTab] = useState('tasks');
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     fetchTasks();
@@ -164,7 +165,9 @@ function Dashboard() {
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Today's Wrap-Up</h1>
-            <div className="flex space-x-4">
+            
+            {/* デスクトップナビゲーション */}
+            <div className="hidden md:flex space-x-4">
               <button
                 onClick={() => setActiveTab('tasks')}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
@@ -204,7 +207,56 @@ function Dashboard() {
                 <span>アカウント削除</span>
               </button>
             </div>
+
+            {/* モバイルメニューボタン */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+            >
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
+
+          {/* モバイルナビゲーションメニュー */}
+          {isMenuOpen && (
+            <div className="md:hidden bg-white border-t border-gray-100 -mx-6 px-6 py-4 space-y-4">
+              <button
+                onClick={() => {
+                  setActiveTab('tasks');
+                  setIsMenuOpen(false);
+                }}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors w-full ${
+                  activeTab === 'tasks'
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <Layout size={20} />
+                <span>タスク</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsMenuOpen(false);
+                }}
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors text-gray-600 hover:bg-red-100 hover:text-red-700 w-full"
+              >
+                <LogOut size={20} />
+                <span>ログアウト</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleDeleteAccount();
+                  setIsMenuOpen(false);
+                }}
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors text-gray-600 hover:bg-red-100 hover:text-red-700 w-full"
+              >
+                <UserX size={20} />
+                <span>アカウント削除</span>
+              </button>
+            </div>
+          )}
 
           {activeTab === 'tasks' && (
             <>
