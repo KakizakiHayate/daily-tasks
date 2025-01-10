@@ -16,10 +16,16 @@ export const TaskProvider = ({ children }) => {
         try {
             setLoading(true);
             setError(null);
-            const data = await getTasks();
-            setTasks(data);
+            const response = await getTasks();
+            if (response && Array.isArray(response)) {
+                setTasks(response);
+            } else {
+                console.error('Invalid response format:', response);
+                setError('データの取得に失敗しました');
+            }
         } catch (err) {
-            setError(err.message);
+            console.error('Fetch tasks error:', err);
+            setError(err.message || 'タスクの取得中にエラーが発生しました');
         } finally {
             setLoading(false);
         }
@@ -28,11 +34,21 @@ export const TaskProvider = ({ children }) => {
     const addTask = async (taskData) => {
         try {
             setError(null);
-            const newTask = await createTask(taskData);
-            setTasks(prev => [...prev, newTask]);
-            return newTask;
+            const response = await createTask(taskData);
+            if (response && response.id) {
+                setTasks(prev => [...prev, response]);
+                return response;
+            } else {
+                throw new Error('タスクの作成に失敗しました');
+            }
         } catch (err) {
-            setError(err.message);
+            console.error('Add task error:', err);
+            if (err.response?.status === 419) {
+                // CSRF/セッションエラーの場合は、ページをリロード
+                window.location.reload();
+                return;
+            }
+            setError(err.message || 'タスクの作成中にエラーが発生しました');
             throw err;
         }
     };

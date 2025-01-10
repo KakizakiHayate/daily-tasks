@@ -35,8 +35,26 @@ function Dashboard() {
     fetchTasks();
   }, [fetchTasks]);
 
-  const completionRate = tasks.length > 0
-    ? (tasks.filter(task => task.is_completed).length / tasks.length) * 100
+  // 日付が今日かどうかをチェック
+  const isToday = (dateString) => {
+    if (!dateString) return false;
+    
+    const today = new Date();
+    const jstOffset = 9 * 60; // JSTは+9:00
+    const targetDate = new Date(dateString);
+    
+    // 日本時間での日付を取得
+    const todayJST = new Date(today.getTime() + (jstOffset * 60 * 1000));
+    const targetDateJST = new Date(targetDate.getTime() + (jstOffset * 60 * 1000));
+    
+    return todayJST.toISOString().split('T')[0] === targetDateJST.toISOString().split('T')[0];
+  };
+
+  // 今日のタスクのみをフィルタリング
+  const todaysTasks = tasks.filter(task => isToday(task.due_date));
+
+  const completionRate = todaysTasks.length > 0
+    ? (todaysTasks.filter(task => task.is_completed).length / todaysTasks.length) * 100
     : 0;
 
   const handleComplete = async (id) => {
@@ -70,13 +88,16 @@ function Dashboard() {
   const handleAddTask = async () => {
     if (!newTaskTitle.trim()) return;
 
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD形式で今日の日付を取得
+    const today = new Date();
+    const jstOffset = 9 * 60; // JSTは+9:00
+    const jstDate = new Date(today.getTime() + (jstOffset * 60 * 1000));
+    const formattedDate = jstDate.toISOString().split('T')[0];
 
     const newTask = {
       title: newTaskTitle,
       description: '',
       priority: 'medium',
-      due_date: today,
+      due_date: formattedDate,
     };
 
     await addTask(newTask);
@@ -208,7 +229,7 @@ function Dashboard() {
                       ref={provided.innerRef}
                       className="space-y-4"
                     >
-                      {tasks.map((task, index) => (
+                      {todaysTasks.map((task, index) => (
                         <Draggable key={task.id} draggableId={task.id.toString()} index={index}>
                           {(provided) => (
                             <div

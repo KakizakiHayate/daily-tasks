@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import authService from '../services/authService';
+import axios from 'axios';
 
 const AuthContext = createContext(null);
 
@@ -18,10 +19,20 @@ export function AuthProvider({ children }) {
     authService.setupAxiosInterceptors();
   }, []);
 
-  const login = () => {
-    const currentUser = authService.getCurrentUser();
+  // CSRFトークンを取得する関数
+  const refreshCsrfToken = async () => {
+    try {
+      await axios.get('http://backend:8000/sanctum/csrf-cookie', {
+        withCredentials: true
+      });
+    } catch (error) {
+      console.error('CSRFトークンの更新に失敗しました:', error);
+    }
+  };
+
+  const login = async () => {
+    await refreshCsrfToken(); // ログイン時にCSRFトークンを更新
     setIsAuthenticated(true);
-    setUser(currentUser);
   };
 
   const logout = async () => {

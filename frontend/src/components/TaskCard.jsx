@@ -47,8 +47,11 @@ export function TaskCard({ task, onComplete, onDelete, onPostpone, onEdit }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const today = new Date().toISOString().split('T')[0];
-    onEdit(task.id, { ...editData, due_date: today });
+    const today = new Date();
+    const jstDate = new Date(today.getTime() + (9 * 60 * 60 * 1000));
+    const formattedDate = jstDate.toISOString().split('T')[0];
+    
+    onEdit(task.id, { ...editData, due_date: formattedDate });
     setIsEditing(false);
   };
 
