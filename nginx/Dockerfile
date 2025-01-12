@@ -4,6 +4,8 @@ FROM nginx:1.26.2
 RUN apt-get update && apt-get install -y \
     curl \
     procps \
+    ca-certificates \
+    openssl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
