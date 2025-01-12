@@ -58,6 +58,7 @@ services:
     volumes:
       - ../backend:/var/www/backend
       - ../frontend:/var/www/frontend
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - backend
       - phpmyadmin
