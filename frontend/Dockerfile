@@ -11,6 +11,9 @@ RUN npm install
 # ソースコードをコピー
 COPY . .
 
+# パーミッションを設定
+RUN chown -R node:node /app && chmod -R 777 /app
+
 # 開発サーバーのポートを公開
 EXPOSE 3000
 
