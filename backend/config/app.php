@@ -52,7 +52,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    'url' => env('APP_URL', 'https://daily-tasks-app.hyt-apps.com'),
 
     /*
     |--------------------------------------------------------------------------
@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => env('APP_TIMEZONE', 'UTC'),
+    'timezone' => env('APP_TIMEZONE', 'Asia/Tokyo'),
 
     /*
     |--------------------------------------------------------------------------
@@ -78,11 +78,9 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
-
-    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
-
-    'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
+    'locale' => env('APP_LOCALE', 'ja'),
+    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'ja'),
+    'faker_locale' => env('APP_FAKER_LOCALE', 'ja_JP'),
 
     /*
     |--------------------------------------------------------------------------
@@ -122,5 +120,4 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
-
 ];
