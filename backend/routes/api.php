@@ -17,8 +17,9 @@ Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logo
 Route::middleware('auth:sanctum')->group(function () {
     // 現在のユーザー情報取得
     Route::get('/user', function (Request $request) {
-        \Log::debug('SANCTUM_STATEFUL_DOMAINS: ' . env('SANCTUM_STATEFUL_DOMAINS'));
-        \Log::debug('Configured domains: ' . implode(',', config('sanctum.stateful')));
+        Log::info('user/まできました');
+        Log::info('SANCTUM_STATEFUL_DOMAINS: ' . env('SANCTUM_STATEFUL_DOMAINS'));
+        Log::info('Configured domains: ' . implode(',', config('sanctum.stateful')));
         return [
             'user' => $request->user(),
             'debug' => [
