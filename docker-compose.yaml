@@ -35,6 +35,11 @@ services:
       - ./backend/.env
     volumes:
       - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: dt-db-prod-1229
+      MYSQL_DATABASE: daily_tasks_prod_db
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: dt-db-prod-1229
 
   phpmyadmin:
     build:
