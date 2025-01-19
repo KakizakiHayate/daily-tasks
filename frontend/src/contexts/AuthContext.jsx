@@ -18,8 +18,8 @@ export function AuthProvider({ children }) {
         // Axiosインターセプターを設定
         authService.setupAxiosInterceptors();
         
-        // ログインページでは認証チェックをスキップ
-        if (location.pathname === '/login') {
+        // ログインページとレジスターページでは認証チェックをスキップ
+        if (location.pathname === '/login' || location.pathname === '/register') {
           setIsLoading(false);
           return;
         }
@@ -32,11 +32,13 @@ export function AuthProvider({ children }) {
         } else {
           setIsAuthenticated(false);
           setUser(null);
+          navigate('/login');
         }
       } catch (error) {
         console.error('認証状態の確認に失敗しました:', error);
         setIsAuthenticated(false);
         setUser(null);
+        navigate('/login');
       } finally {
         setIsLoading(false);
       }
