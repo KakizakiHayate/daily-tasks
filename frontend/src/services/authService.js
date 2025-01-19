@@ -61,6 +61,7 @@ const authService = {
     // セッション状態を確認するメソッド
     checkAuth: async () => {
         try {
+            await authService.getCsrfToken(); // CSRFトークンを取得
             const response = await axios.get(`${API_URL}/api/user`, {
                 // 認証チェック時は401エラーを通常のレスポンスとして扱う
                 validateStatus: function (status) {
