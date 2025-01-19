@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const instance = axios.create({
-    baseURL: 'http://localhost:8001/api',
+    baseURL: `${process.env.REACT_APP_API_URL}/api`,
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -12,7 +12,7 @@ const instance = axios.create({
 // CSRFトークンを取得する関数
 const refreshCsrfToken = async () => {
     try {
-        await axios.get('http://localhost:8001/sanctum/csrf-cookie', {
+        await axios.get(`${process.env.REACT_APP_API_URL}/sanctum/csrf-cookie`, {
             withCredentials: true
         });
     } catch (error) {
