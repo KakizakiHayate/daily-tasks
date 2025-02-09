@@ -14,13 +14,13 @@ local-build:
 	docker-compose up --build -d
 
 # 本番環境に切り替えてビルドなしでコンテナを起動
-production:
+prod:
 	@./scripts/switch-env.sh production
 	@echo "Starting Docker containers for production environment without build..."
 	docker-compose up -d
 
 # 本番環境に切り替えてビルドしてコンテナを起動
-production-build:
+prod-build:
 	@./scripts/switch-env.sh production
 	@echo "Building and starting Docker containers for production environment..."
 	docker-compose up --build -d

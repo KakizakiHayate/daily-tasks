@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TaskController;
@@ -16,7 +17,16 @@ Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logo
 Route::middleware('auth:sanctum')->group(function () {
     // 現在のユーザー情報取得
     Route::get('/user', function (Request $request) {
-        return $request->user();
+        Log::info('user/まできました');
+        Log::info('SANCTUM_STATEFUL_DOMAINS: ' . env('SANCTUM_STATEFUL_DOMAINS'));
+        Log::info('Configured domains: ' . implode(',', config('sanctum.stateful')));
+        return [
+            'user' => $request->user(),
+            'debug' => [
+                'env_domains' => env('SANCTUM_STATEFUL_DOMAINS'),
+                'config_domains' => config('sanctum.stateful')
+            ]
+        ];
     });
 
     // ダッシュボード

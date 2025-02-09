@@ -61,15 +61,14 @@ const authService = {
     // セッション状態を確認するメソッド
     checkAuth: async () => {
         try {
-            const response = await axios.get(`${API_URL}/api/user`, {
-                // 認証チェック時は401エラーを通常のレスポンスとして扱う
-                validateStatus: function (status) {
-                    return status >= 200 && status < 300 || status === 401;
-                }
-            });
+            await authService.getCsrfToken(); // CSRFトークンを取得
+            const response = await axios.get(`${API_URL}/api/user`);
             return response.data;
         } catch (error) {
             console.error('Auth check error:', error);
+            if (error.response?.status === 401) {
+                throw error; // 401エラーを上位に伝播させる
+            }
             return null;
         }
     },

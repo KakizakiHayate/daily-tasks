@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'paths' => ['*'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie'],
     'allowed_methods' => ['*'],
     'allowed_origins' => ['http://localhost:3000', 'https://daily-tasks-app.hyt-apps.com'],
     'allowed_origins_patterns' => [],
